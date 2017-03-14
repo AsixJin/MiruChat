@@ -1,0 +1,15 @@
+<resources>
+    <string name="app_name">Miru Chat</string>
+
+    <string name="main_header">Select an Option</string>
+    <string name="login_header">Enter Details</string>
+
+    <string name="username_hint">Username</string>
+    <string name="roomname_hint">Room Name</string>
+    <string name="youtube_hint">Youtube link</string>
+
+
+    <string name="button_host">Host Room</string>
+    <string name="button_join">Join Room</string>
+    <string name="button_login">Login</string>
+</resources>
