@@ -16,15 +16,6 @@
         android:background="@color/mainRed"/>
 
     <EditText
-        android:id="@+id/edit_username"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:textColor="@android:color/black"
-        android:hint="@string/username_hint"
-        android:textColorHint="@android:color/darker_gray"/>
-
-    <EditText
         android:id="@+id/edit_roomname"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

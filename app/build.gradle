@@ -36,5 +36,7 @@ dependencies {
     compile 'com.sendbird.sdk:sendbird-android-sdk:3.0.22'
     //Youtube Player SDK
     compile files('libs/YouTubeAndroidPlayerApi.jar')
+    //PubNub
+    compile group: 'com.pubnub', name: 'pubnub-gson', version: '4.6.0'
 
 }

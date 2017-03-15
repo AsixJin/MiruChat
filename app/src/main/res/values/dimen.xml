@@ -3,4 +3,5 @@
     <dimen name="header_size">50sp</dimen>
     <dimen name="dialogHeader_size">30sp</dimen>
     <dimen name="button_size">30sp</dimen>
+    <dimen name="chatlog_size">20sp</dimen>
 </resources>

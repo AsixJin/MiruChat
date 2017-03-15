@@ -22,12 +22,14 @@ public class AsixUtils {
          the text of a TextView
 
      */
-    public static void setVisibility(View view, boolean isVisible){
+    public static boolean setVisibility(View view, boolean isVisible){
         if(isVisible){
             view.setVisibility(View.VISIBLE);
         }else{
             view.setVisibility(View.GONE);
         }
+
+        return isVisible;
     }
 
     public static String getEditText_Text(View editText){
