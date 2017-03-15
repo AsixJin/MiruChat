@@ -201,7 +201,7 @@ public class ChatActivity extends AppCompatActivity implements YouTubePlayer.OnI
 
     private SyncInfo generateInfo(String state){
         SyncInfo info = new SyncInfo();
-        info.id = "GquEnoqZAK0";
+        info.id = "Z-tv6dvSdB8";
         info.time = player.getCurrentTimeMillis();
         info.state = state;
         return info;
@@ -261,9 +261,13 @@ public class ChatActivity extends AppCompatActivity implements YouTubePlayer.OnI
         String state = object.getString("state");
         switch(state){
             case "play":
-
                 if(player.isPlaying()){
-                    player.seekToMillis(object.getInt("time"));
+                    int syncTime = object.getInt("time")/1000;
+                    int playerTime = player.getCurrentTimeMillis()/1000;
+                    int timeApart = syncTime-playerTime;
+                    if(timeApart >= 10 || timeApart <= -10){
+                        player.seekToMillis(object.getInt("time"));
+                    }
                 }else{
                     player.cueVideo(object.getString("id"));
                     player.seekToMillis(object.getInt("time"));
@@ -379,7 +383,7 @@ public class ChatActivity extends AppCompatActivity implements YouTubePlayer.OnI
                                         boolean wasRestored) {
         this.player = player;
         if(MiruUser.isHost()){
-            player.cueVideo("GquEnoqZAK0");
+            player.cueVideo("Z-tv6dvSdB8");
             player.play();
             setupHost();
         }
