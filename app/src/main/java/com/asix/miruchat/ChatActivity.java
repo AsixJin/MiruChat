@@ -1,11 +1,10 @@
-package com.asix.youtubechat;
+package com.asix.miruchat;
 
 import android.app.Dialog;
 import android.content.*;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.Nullable;
-import android.support.v4.app.Fragment;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Menu;
@@ -13,11 +12,9 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.google.android.youtube.player.YouTubeBaseActivity;
 import com.google.android.youtube.player.YouTubeInitializationResult;
 import com.google.android.youtube.player.YouTubePlayer;
 import com.google.android.youtube.player.YouTubePlayerFragment;
@@ -43,10 +40,8 @@ import com.sendbird.android.UserMessage;
 
 import org.json.JSONObject;
 
-import java.security.PrivateKey;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Timer;
 
 public class ChatActivity extends AppCompatActivity implements YouTubePlayer.OnInitializedListener {
 
@@ -88,7 +83,7 @@ public class ChatActivity extends AppCompatActivity implements YouTubePlayer.OnI
         setContentView(R.layout.layout_chat);
 
         //Youtube Init
-        YouTubePlayerFragment youTubePlayerFragment = (YouTubePlayerFragment) getFragmentManager().findFragmentById(R.id.youtube_fragment);
+        YouTubePlayerFragment youTubePlayerFragment = (YouTubePlayerFragment) getFragmentManager().findFragmentById(com.asix.miruchat.R.id.youtube_fragment);
         youTubePlayerFragment.initialize(DEVELOPER_KEY, this);
 
         //PubNub
@@ -104,10 +99,10 @@ public class ChatActivity extends AppCompatActivity implements YouTubePlayer.OnI
         channel = MiruUser.getCurrentChannel();
 
         //Get views
-        chatLog_TextView = (TextView) findViewById(R.id.text_chatlog);
-        tubePlayer = (YouTubePlayerView) findViewById(R.id.youtube_fragment);
-        chatMessage = (EditText)findViewById(R.id.edit_chatmsg);
-        sendButton = (Button)findViewById(R.id.button_send);
+        chatLog_TextView = (TextView) findViewById(com.asix.miruchat.R.id.text_chatlog);
+        tubePlayer = (YouTubePlayerView) findViewById(com.asix.miruchat.R.id.youtube_fragment);
+        chatMessage = (EditText)findViewById(com.asix.miruchat.R.id.edit_chatmsg);
+        sendButton = (Button)findViewById(com.asix.miruchat.R.id.button_send);
 
         //region Hook up send button
         sendButton.setOnClickListener(new View.OnClickListener() {
@@ -201,7 +196,7 @@ public class ChatActivity extends AppCompatActivity implements YouTubePlayer.OnI
 
     private SyncInfo generateInfo(String state){
         SyncInfo info = new SyncInfo();
-        info.id = "Z-tv6dvSdB8";
+        info.id = MiruUser.getYoutubeID();
         info.time = player.getCurrentTimeMillis();
         info.state = state;
         return info;
@@ -286,13 +281,13 @@ public class ChatActivity extends AppCompatActivity implements YouTubePlayer.OnI
     }
 
     private void showAskUsernameDialog(){
-        final Dialog usernameDialog = AsixUtils.createDialog(this, R.layout.dialog_askuser);
+        final Dialog usernameDialog = AsixUtils.createDialog(this, com.asix.miruchat.R.layout.dialog_askuser);
 
-        usernameDialog.findViewById(R.id.button_submit).setOnClickListener(new View.OnClickListener() {
+        usernameDialog.findViewById(com.asix.miruchat.R.id.button_submit).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 usernameDialog.dismiss();
-                String username = AsixUtils.getEditText_Text(usernameDialog.findViewById(R.id.edit_username));
+                String username = AsixUtils.getEditText_Text(usernameDialog.findViewById(com.asix.miruchat.R.id.edit_username));
                 if(AsixUtils.doesStringExist(username)){
                     inviteUser(username);
                 }else{
@@ -353,12 +348,12 @@ public class ChatActivity extends AppCompatActivity implements YouTubePlayer.OnI
             public void onResult(SendBirdException e) {
                 if (e != null) {
                     // Error.
-                    AsixUtils.makeToast(getApplicationContext(), "Invite User Failed! Try again later").show();
+                    AsixUtils.showToast(getApplicationContext(), "Invite User Failed! Try again later");
                     e.printStackTrace();
                     return;
                 }
 
-                AsixUtils.makeToast(getApplicationContext(), "User Invite Successful").show();
+                AsixUtils.showToast(getApplicationContext(), "User Invite Successful");
             }
         });
     }
@@ -373,7 +368,7 @@ public class ChatActivity extends AppCompatActivity implements YouTubePlayer.OnI
         if (errorReason.isUserRecoverableError()) {
             errorReason.getErrorDialog(this, RECOVERY_DIALOG_REQUEST).show();
         } else {
-            String errorMessage = String.format(getString(R.string.error_player), errorReason.toString());
+            String errorMessage = String.format(getString(com.asix.miruchat.R.string.error_player), errorReason.toString());
             Toast.makeText(this, errorMessage, Toast.LENGTH_LONG).show();
         }
     }
@@ -383,14 +378,14 @@ public class ChatActivity extends AppCompatActivity implements YouTubePlayer.OnI
                                         boolean wasRestored) {
         this.player = player;
         if(MiruUser.isHost()){
-            player.cueVideo("Z-tv6dvSdB8");
+            player.cueVideo(MiruUser.getYoutubeID());
             player.play();
             setupHost();
         }
     }
 
     protected YouTubePlayer.Provider getYouTubePlayerProvider() {
-        return (YouTubePlayerFragment) getFragmentManager().findFragmentById(R.id.youtube_fragment);
+        return (YouTubePlayerFragment) getFragmentManager().findFragmentById(com.asix.miruchat.R.id.youtube_fragment);
     }
     //endregion
 }

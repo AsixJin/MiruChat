@@ -1,4 +1,4 @@
-package com.asix.youtubechat;
+package com.asix.miruchat;
 
 public class SyncInfo {
     String id;

@@ -24,6 +24,13 @@
         android:hint="@string/username_hint"
         android:textColorHint="@android:color/darker_gray"/>
 
+    <CheckBox
+        android:id="@+id/check_rememberMe"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:text="@string/remember_checkBox"/>
+
     <Button
         android:id="@+id/button_submit"
         android:layout_width="match_parent"

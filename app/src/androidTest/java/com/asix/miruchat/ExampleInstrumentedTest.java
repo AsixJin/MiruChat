@@ -1,4 +1,4 @@
-package com.asix.youtubechat;
+package com.asix.miruchat;
 
 import android.content.Context;
 import android.support.test.InstrumentationRegistry;

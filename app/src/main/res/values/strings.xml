@@ -1,5 +1,10 @@
 <resources>
     <string name="app_name">Miru Chat</string>
+    <string name="prefName">miruPrefs</string>
+
+    <string name="userPrefKey">miruUsername</string>
+
+    <string name="sendBird_AppId">1A49BA89-1050-4C5C-8E12-E37D8B337457</string>
 
     <string name="error_player">There was an error initializing the YouTubePlayer (%1$s)</string>
 
@@ -11,6 +16,8 @@
     <string name="roomname_hint">Room Name</string>
     <string name="youtube_hint">Youtube link</string>
     <string name="chat_hint">Enter Message Here</string>
+
+    <string name="remember_checkBox">Remember Me</string>
 
     <string name="menuitem_invite">Invite User</string>
 

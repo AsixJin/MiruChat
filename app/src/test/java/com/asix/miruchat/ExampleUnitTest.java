@@ -1,4 +1,4 @@
-package com.asix.youtubechat;
+package com.asix.miruchat;
 
 import org.junit.Test;
 

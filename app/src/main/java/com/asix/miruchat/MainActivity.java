@@ -1,12 +1,15 @@
-package com.asix.youtubechat;
+package com.asix.miruchat;
 
 import android.app.Dialog;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
+import android.widget.Button;
+import android.widget.CheckBox;
 
 import com.sendbird.android.GroupChannel;
 import com.sendbird.android.SendBird;
@@ -15,25 +18,52 @@ import com.sendbird.android.User;
 
 import java.util.ArrayList;
 
-public class MainActivity extends AppCompatActivity implements View.OnClickListener{
+import butterknife.ButterKnife;
+import butterknife.OnClick;
+
+public class MainActivity extends AppCompatActivity {
 
     private final String TAG = "MAIN";
+    private SharedPreferences _prefs;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.layout_main);
-        SendBird.init("1A49BA89-1050-4C5C-8E12-E37D8B337457", getApplicationContext());
+        setContentView(com.asix.miruchat.R.layout.layout_main);
+        //User ButterKnife to bind views
+        ButterKnife.bind(this);
+        //Init SendBird API
+        SendBird.init(getString(R.string.sendBird_AppId), getApplicationContext());
+        //Get Shared Prefs
+        _prefs = AsixUtils.getSharedPrefs(this);
+        //Get the name that the user will use in chat
+        getUserName();
+    }
 
-        findViewById(R.id.button_host).setOnClickListener(this);
-        findViewById(R.id.button_join).setOnClickListener(this);
+    //region ButterKnife On Clicks
+    @OnClick(R.id.button_host) public void buttonHostClick(){
+        showAskRoomDialog(true);
+    }
 
-        showAskUsernameDialog();
+    @OnClick(R.id.button_join) public void buttonJoinClick(){
+        showAskRoomDialog(false);
+    }
+    //endregion
+
+    //region Username Methods
+    private void getUserName(){
+        String username = _prefs.getString(getString(R.string.userPrefKey), null);
+        if(AsixUtils.doesStringExist(username)){
+            makeUser(username, null);
+        }else{
+            showAskUsernameDialog();
+        }
     }
 
     private void showAskUsernameDialog(){
         final Dialog usernameDialog = AsixUtils.createDialog(this, R.layout.dialog_askuser);
         usernameDialog.setCancelable(false);
+        final CheckBox rememberCheck = (CheckBox) usernameDialog.findViewById(R.id.check_rememberMe);
 
         usernameDialog.findViewById(R.id.button_submit).setOnClickListener(new View.OnClickListener() {
             @Override
@@ -41,8 +71,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 String username = AsixUtils.getEditText_Text(usernameDialog.findViewById(R.id.edit_username));
                 if(AsixUtils.doesStringExist(username)){
                     makeUser(username, usernameDialog);
+                    if(rememberCheck.isChecked()){
+                        _prefs.edit().putString(getString(R.string.userPrefKey), username).apply();
+                    }
                 }else{
-                    AsixUtils.makeToast(getApplicationContext(), "Please enter a username").show();
+                    AsixUtils.showToast(getApplicationContext(), "Please enter a username");
                 }
             }
         });
@@ -50,6 +83,27 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         usernameDialog.show();
     }
 
+    public void makeUser(final String username, @Nullable final Dialog dialog){
+        SendBird.connect(username, new SendBird.ConnectHandler() {
+            @Override
+            public void onConnected(User user, SendBirdException e) {
+                if (e != null) {
+                    // Error.
+                    AsixUtils.makeToast(getApplicationContext(), "Register User Failed! Please try again.").show();
+                    e.printStackTrace();
+                }else{
+                    if(dialog != null){
+                        dialog.dismiss();
+                    }
+                    MiruUser.initUser(user);
+                    AsixUtils.makeToast(getApplicationContext(), "Welcome " + user.getUserId()).show();
+                }
+            }
+        });
+    }
+    //endregion
+
+    //region Room Methods
     private void showAskRoomDialog(final boolean isHost){
         final Dialog loginDialog = AsixUtils.createDialog(this, R.layout.dialog_login);
         AsixUtils.setVisibility(loginDialog.findViewById(R.id.edit_youtube), isHost);
@@ -58,11 +112,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             @Override
             public void onClick(View v) {
                 String room = AsixUtils.getEditText_Text(loginDialog.findViewById(R.id.edit_roomname));
-                //String ytLink = AsixUtils.getEditText_Text(loginDialog.findViewById(R.id.edit_youtube));
+                String ytLink = AsixUtils.getEditText_Text(loginDialog.findViewById(R.id.edit_youtube));
 
-                if(AsixUtils.doesStringExist(room)){
+                if((!isHost && AsixUtils.doesStringExist(room)) || (isHost && AsixUtils.doesStringExist(room) && AsixUtils.doesStringExist(ytLink))){
                     if(isHost){
-                        makeRoom(room, isHost);
+                        makeRoom(room, ytLink, isHost);
                     }else{
                         joinRoom(room, isHost);
                     }
@@ -76,24 +130,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         loginDialog.show();
     }
 
-    public void makeUser(final String username, final Dialog dialog){
-        SendBird.connect(username, new SendBird.ConnectHandler() {
-            @Override
-            public void onConnected(User user, SendBirdException e) {
-                if (e != null) {
-                    // Error.
-                    AsixUtils.makeToast(getApplicationContext(), "Register User Failed! Please try again.").show();
-                    e.printStackTrace();
-                }else{
-                    dialog.dismiss();
-                    MiruUser.initUser(user);
-                    AsixUtils.makeToast(getApplicationContext(), "Welcome " + user.getUserId()).show();
-                }
-            }
-        });
-    }
-
-    public void makeRoom(final String roomname, final boolean host){
+    public void makeRoom(final String roomname, final String youtubeID, final boolean host){
         ArrayList<User> userList = new ArrayList<>();
         userList.add(MiruUser.getUser());
         GroupChannel.createChannel(userList, true, roomname, null, null, null, new GroupChannel.GroupChannelCreateHandler() {
@@ -101,12 +138,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             public void onResult(GroupChannel groupChannel, SendBirdException e) {
                 if (e != null) {
                     // Error.
-                    AsixUtils.makeToast(getApplicationContext(), "Error making channel. Please try again").show();
+                    AsixUtils.showToast(getApplicationContext(), "Error making channel. Please try again");
                     e.printStackTrace();
                 }else{
-                    MiruUser.joinRoom(groupChannel, host);
-                    AsixUtils.makeToast(getApplicationContext(), "Welcome to the " + groupChannel.getName() + " channel").show();
-                    Log.i("TAG", groupChannel.getUrl());
+                    MiruUser.joinRoom(groupChannel, host, youtubeID);
+                    AsixUtils.showToast(getApplicationContext(), "Welcome to the " + groupChannel.getName() + " channel");
+                    Log.i(TAG, groupChannel.getUrl());
                     startActivity(new Intent(getApplicationContext(), ChatActivity.class));
                 }
             }
@@ -123,25 +160,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     return;
                 }
 
-                MiruUser.joinRoom(groupChannel, host);
-                AsixUtils.makeToast(getApplicationContext(), "Welcome to the " + groupChannel.getName() + " channel").show();
+                MiruUser.joinRoom(groupChannel, host, null);
+                AsixUtils.showToast(getApplicationContext(), "Welcome to the " + groupChannel.getName() + " channel");
                 startActivity(new Intent(getApplicationContext(), ChatActivity.class));
             }
         });
     }
+    //endregion
 
-    @Override
-    public void onClick(View v) {
-        switch (v.getId()){
-            case R.id.button_host:
-                showAskRoomDialog(true);
-                break;
-            case R.id.button_join:
-                showAskRoomDialog(false);
-                break;
-            default:
-                AsixUtils.makeToast(getApplicationContext(), "Button Inactive").show();
-                break;
-        }
-    }
 }
