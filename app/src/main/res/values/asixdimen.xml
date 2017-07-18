@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Last Updated: -->
+<resources>
+
+    <!-- Dimen Sizes -->
+    <dimen name="asix_micro">2dp</dimen>
+    <dimen name="asix_small">5dp</dimen>
+    <dimen name="asix_medium">10dp</dimen>
+    <dimen name="asix_large">15dp</dimen>
+    <dimen name="asix_huge">20dp</dimen>
+
+</resources>

@@ -6,6 +6,7 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -29,7 +30,11 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(com.asix.miruchat.R.layout.layout_main);
+        setContentView(R.layout.layout_new_main);
+
+        Toolbar toolbar = (Toolbar)findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+
         //User ButterKnife to bind views
         ButterKnife.bind(this);
         //Init SendBird API
@@ -68,7 +73,7 @@ public class MainActivity extends AppCompatActivity {
         usernameDialog.findViewById(R.id.button_submit).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String username = AsixUtils.getEditText_Text(usernameDialog.findViewById(R.id.edit_username));
+                String username = AsixUtils.getEditText_Text(usernameDialog.findViewById(R.id.edit_username), "");
                 if(AsixUtils.doesStringExist(username)){
                     makeUser(username, usernameDialog);
                     if(rememberCheck.isChecked()){
@@ -111,8 +116,8 @@ public class MainActivity extends AppCompatActivity {
         loginDialog.findViewById(R.id.button_login).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String room = AsixUtils.getEditText_Text(loginDialog.findViewById(R.id.edit_roomname));
-                String ytLink = AsixUtils.getEditText_Text(loginDialog.findViewById(R.id.edit_youtube));
+                String room = AsixUtils.getEditText_Text(loginDialog.findViewById(R.id.edit_roomname), "");
+                String ytLink = AsixUtils.getEditText_Text(loginDialog.findViewById(R.id.edit_youtube), "");
 
                 if((!isHost && AsixUtils.doesStringExist(room)) || (isHost && AsixUtils.doesStringExist(room) && AsixUtils.doesStringExist(ytLink))){
                     if(isHost){

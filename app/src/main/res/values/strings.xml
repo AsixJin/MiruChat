@@ -20,10 +20,12 @@
     <string name="remember_checkBox">Remember Me</string>
 
     <string name="menuitem_invite">Invite User</string>
+    <string name="menuitem_send">Send Invite</string>
 
-    <string name="button_host">Host Room</string>
-    <string name="button_join">Join Room</string>
+    <string name="button_host">Host</string>
+    <string name="button_join">Join</string>
     <string name="button_login">Login</string>
     <string name="button_send">Send</string>
     <string name="button_submit">Submit</string>
+
 </resources>

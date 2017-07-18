@@ -4,7 +4,12 @@
 
     <item android:id="@+id/invite"
         android:title="@string/menuitem_invite"
-        android:icon="@android:drawable/ic_input_add"
+        android:icon="@android:drawable/ic_menu_add"
+        compat:showAsAction="ifRoom" />
+
+    <item android:id="@+id/send"
+        android:title="@string/menuitem_send"
+        android:icon="@android:drawable/ic_menu_share"
         compat:showAsAction="ifRoom" />
 
 </menu>

@@ -8,4 +8,7 @@
         <item name="colorAccent">@color/colorAccent</item>
     </style>
 
+    <style name="MiruTheme" parent="Theme.AppCompat.Light.NoActionBar">
+
+    </style>
 </resources>

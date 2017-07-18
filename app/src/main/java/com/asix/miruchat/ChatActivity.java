@@ -6,6 +6,8 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.RecyclerView;
+import android.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -15,6 +17,9 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.asix.miruchat.chatlog.ChatItem;
+import com.asix.miruchat.chatlog.ChatlogAdapter;
+import com.google.android.youtube.player.YouTubeBaseActivity;
 import com.google.android.youtube.player.YouTubeInitializationResult;
 import com.google.android.youtube.player.YouTubePlayer;
 import com.google.android.youtube.player.YouTubePlayerFragment;
@@ -42,21 +47,27 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 
-public class ChatActivity extends AppCompatActivity implements YouTubePlayer.OnInitializedListener {
+import butterknife.BindView;
+import butterknife.ButterKnife;
+
+public class ChatActivity extends YouTubeBaseActivity implements YouTubePlayer.OnInitializedListener {
 
     private final String DEVELOPER_KEY = "AIzaSyCso2M5tx2eFVLikAWvtSaHLpjvFBaxVc0";
     private final String TAG = "CHAT";
+    private final String SYSMSG = "SYSTEM";
     private GroupChannel channel;
 
     private PubNub pubnub;
-
     private YouTubePlayer player;
+    private ChatlogAdapter adapter;
 
-    private TextView chatLog_TextView;
-    private YouTubePlayerView tubePlayer;
-    private EditText chatMessage;
-    private Button sendButton;
+    @BindView(R.id.rcy_chatlog) RecyclerView rcyChatLog;
+    @BindView(R.id.youtube_fragment) YouTubePlayerView tubePlayer;
+    @BindView(R.id.edit_chatmsg) EditText chatMessage;
+    @BindView(R.id.button_send) Button sendButton;
+    @BindView(R.id.toolbar) Toolbar toolbar;
 
     private Handler handler = new Handler();
     private Runnable playbackRunnable = new Runnable() {
@@ -72,7 +83,6 @@ public class ChatActivity extends AppCompatActivity implements YouTubePlayer.OnI
                     }
                 }
             });
-
             handler.postDelayed(this, 5000);
         }
     };
@@ -81,10 +91,17 @@ public class ChatActivity extends AppCompatActivity implements YouTubePlayer.OnI
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.layout_chat);
+        ButterKnife.bind(this);
+
+        setActionBar(toolbar);
+
+        adapter = new ChatlogAdapter(rcyChatLog);
+        rcyChatLog.setAdapter(adapter);
 
         //Youtube Init
-        YouTubePlayerFragment youTubePlayerFragment = (YouTubePlayerFragment) getFragmentManager().findFragmentById(com.asix.miruchat.R.id.youtube_fragment);
-        youTubePlayerFragment.initialize(DEVELOPER_KEY, this);
+//        YouTubePlayerFragment youTubePlayerFragment = (YouTubePlayerFragment) getFragmentManager().findFragmentById(com.asix.miruchat.R.id.youtube_fragment);
+//        youTubePlayerFragment.initialize(DEVELOPER_KEY, this);
+        tubePlayer.initialize(DEVELOPER_KEY, this);
 
         //PubNub
         PNConfiguration pnConfiguration = new PNConfiguration();
@@ -97,12 +114,6 @@ public class ChatActivity extends AppCompatActivity implements YouTubePlayer.OnI
 
         //Get Channel
         channel = MiruUser.getCurrentChannel();
-
-        //Get views
-        chatLog_TextView = (TextView) findViewById(com.asix.miruchat.R.id.text_chatlog);
-        tubePlayer = (YouTubePlayerView) findViewById(com.asix.miruchat.R.id.youtube_fragment);
-        chatMessage = (EditText)findViewById(com.asix.miruchat.R.id.edit_chatmsg);
-        sendButton = (Button)findViewById(com.asix.miruchat.R.id.button_send);
 
         //region Hook up send button
         sendButton.setOnClickListener(new View.OnClickListener() {
@@ -126,7 +137,7 @@ public class ChatActivity extends AppCompatActivity implements YouTubePlayer.OnI
                     // message is a UserMessage
                     Log.i(TAG,"Message Received");
                     channel.markAsRead();
-                    chatLog_TextView.setText(chatLog_TextView.getText() + ((UserMessage) baseMessage).getSender().getUserId() + ": " + ((UserMessage) baseMessage).getMessage() + "\n");
+                    addMessageToLog(((UserMessage) baseMessage).getSender().getUserId(), ((UserMessage) baseMessage).getMessage());
                 } else if (baseMessage instanceof FileMessage) {
                     // message is a FileMessage
                 } else if (baseMessage instanceof AdminMessage) {
@@ -136,22 +147,22 @@ public class ChatActivity extends AppCompatActivity implements YouTubePlayer.OnI
 
             @Override
             public void onUserEntered(OpenChannel channel, User user) {
-                chatLog_TextView.setText(chatLog_TextView.getText() + user.getUserId() + " has entered the channel!" + "\n");
+                addMessageToLog(SYSMSG, user.getUserId() + " has entered the channel!");
             }
 
             @Override
             public void onUserExited(OpenChannel channel, User user) {
-                chatLog_TextView.setText(chatLog_TextView.getText() + user.getUserId() + " has exited the channel!" + "\n");
+                addMessageToLog(SYSMSG, user.getUserId() + " has exited the channel!");
             }
 
             @Override
             public void onUserJoined(GroupChannel channel, User user) {
-                chatLog_TextView.setText(chatLog_TextView.getText() + user.getUserId() + " has joined the channel!" + "\n");
+                addMessageToLog(SYSMSG, user.getUserId() + " has joined the channel!");
             }
 
             @Override
             public void onUserLeft(GroupChannel channel, User user) {
-                chatLog_TextView.setText(chatLog_TextView.getText() + user.getUserId() + " has left the channel!" + "\n");
+                addMessageToLog(SYSMSG, user.getUserId() + " has left the channel!");
             }
         });
         //endregion
@@ -182,7 +193,7 @@ public class ChatActivity extends AppCompatActivity implements YouTubePlayer.OnI
         });
 
         pubnub.subscribe()
-                .channels(Arrays.asList(channel.getName()))
+                .channels(Collections.singletonList(channel.getName()))
                 .execute();
     }
 
@@ -287,7 +298,7 @@ public class ChatActivity extends AppCompatActivity implements YouTubePlayer.OnI
             @Override
             public void onClick(View v) {
                 usernameDialog.dismiss();
-                String username = AsixUtils.getEditText_Text(usernameDialog.findViewById(com.asix.miruchat.R.id.edit_username));
+                String username = AsixUtils.getEditText_Text(usernameDialog.findViewById(com.asix.miruchat.R.id.edit_username), "");
                 if(AsixUtils.doesStringExist(username)){
                     inviteUser(username);
                 }else{
@@ -297,6 +308,11 @@ public class ChatActivity extends AppCompatActivity implements YouTubePlayer.OnI
         });
 
         usernameDialog.show();
+    }
+
+    private void addMessageToLog(String user, String msg){
+        ChatItem item = new ChatItem(user, msg);
+        adapter.addMessage(item);
     }
 
     //region Menu Stuff
@@ -316,6 +332,8 @@ public class ChatActivity extends AppCompatActivity implements YouTubePlayer.OnI
         int id = item.getItemId();
         if(id == R.id.invite){
             showAskUsernameDialog();
+        }else if(id == R.id.send){
+            AsixUtils.shareText(this, MiruUser.getCurrentChannel().getUrl());
         }
         return super.onOptionsItemSelected(item);
     }
@@ -333,7 +351,7 @@ public class ChatActivity extends AppCompatActivity implements YouTubePlayer.OnI
                     return;
                 }else{
                     channel.markAsRead();
-                    chatLog_TextView.setText(chatLog_TextView.getText() + userMessage.getSender().getUserId() + ": " + userMessage.getMessage() + "\n");
+                    addMessageToLog(userMessage.getSender().getUserId(), userMessage.getMessage());
                     chatMessage.setText("");
                 }
             }
@@ -374,8 +392,7 @@ public class ChatActivity extends AppCompatActivity implements YouTubePlayer.OnI
     }
 
     @Override
-    public void onInitializationSuccess(YouTubePlayer.Provider provider, YouTubePlayer player,
-                                        boolean wasRestored) {
+    public void onInitializationSuccess(YouTubePlayer.Provider provider, YouTubePlayer player, boolean wasRestored) {
         this.player = player;
         if(MiruUser.isHost()){
             player.cueVideo(MiruUser.getYoutubeID());

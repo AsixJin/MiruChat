@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="wrap_content" android:background="@android:color/white">
+    <TextView
+        android:id="@+id/senderName"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:paddingTop="@dimen/asix_small"
+        android:paddingBottom="@dimen/asix_small"
+        android:text="Username"
+        android:textSize="20sp"
+        android:textColor="@android:color/black"
+        android:textStyle="bold"/>
+
+    <TextView
+        android:id="@+id/chatMessage"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/senderName"
+        android:paddingStart="@dimen/asix_large"
+        android:paddingBottom="@dimen/asix_small"
+        android:text="This is a chat message that Asix Jin has sent."
+        android:textSize="15sp"
+        android:textColor="@android:color/black"/>
+
+    <TextView
+        android:id="@+id/messageTime"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:padding="@dimen/asix_micro"
+        android:text="SUN 00:00"
+        android:textSize="10sp"
+        android:textColor="@android:color/black"
+        android:layout_alignParentTop="true" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/asix_micro"
+        android:background="@android:color/darker_gray"
+        android:layout_below="@id/chatMessage"/>
+</RelativeLayout>
