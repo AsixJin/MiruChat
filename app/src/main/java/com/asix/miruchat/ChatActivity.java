@@ -1,5 +1,6 @@
 package com.asix.miruchat;
 
+import android.app.Activity;
 import android.app.Dialog;
 import android.content.*;
 import android.os.Bundle;
@@ -56,8 +57,10 @@ public class ChatActivity extends YouTubeBaseActivity implements YouTubePlayer.O
 
     private final String DEVELOPER_KEY = "AIzaSyCso2M5tx2eFVLikAWvtSaHLpjvFBaxVc0";
     private final String TAG = "CHAT";
-    private final String SYSMSG = "SYSTEM";
+    private final String SYSMSG = "Miru Bot";
     private GroupChannel channel;
+
+    private Activity mAct;
 
     private PubNub pubnub;
     private YouTubePlayer player;
@@ -92,6 +95,7 @@ public class ChatActivity extends YouTubeBaseActivity implements YouTubePlayer.O
         super.onCreate(savedInstanceState);
         setContentView(R.layout.layout_chat);
         ButterKnife.bind(this);
+        mAct = this;
 
         setActionBar(toolbar);
 
@@ -198,6 +202,17 @@ public class ChatActivity extends YouTubeBaseActivity implements YouTubePlayer.O
     }
 
     @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        SendBird.disconnect(new SendBird.DisconnectHandler() {
+            @Override
+            public void onDisconnected() {
+                
+            }
+        });
+    }
+
+    @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == RECOVERY_DIALOG_REQUEST) {
             // Retry initialization if user performed a recovery action
@@ -263,6 +278,7 @@ public class ChatActivity extends YouTubeBaseActivity implements YouTubePlayer.O
     }
 
     private void syncVideo(String json) throws Exception{
+        addMessageToLog(SYSMSG, "Syncing video with host.");
         JSONObject object = new JSONObject(json);
         String state = object.getString("state");
         switch(state){
@@ -298,7 +314,7 @@ public class ChatActivity extends YouTubeBaseActivity implements YouTubePlayer.O
             @Override
             public void onClick(View v) {
                 usernameDialog.dismiss();
-                String username = AsixUtils.getEditText_Text(usernameDialog.findViewById(com.asix.miruchat.R.id.edit_username), "");
+                String username = AsixUtils.getEditText_Text(usernameDialog.findViewById(R.id.edit_username), "");
                 if(AsixUtils.doesStringExist(username)){
                     inviteUser(username);
                 }else{
@@ -332,8 +348,6 @@ public class ChatActivity extends YouTubeBaseActivity implements YouTubePlayer.O
         int id = item.getItemId();
         if(id == R.id.invite){
             showAskUsernameDialog();
-        }else if(id == R.id.send){
-            AsixUtils.shareText(this, MiruUser.getCurrentChannel().getUrl());
         }
         return super.onOptionsItemSelected(item);
     }
@@ -358,7 +372,7 @@ public class ChatActivity extends YouTubeBaseActivity implements YouTubePlayer.O
         });
     }
 
-    private void inviteUser(String user){
+    private void inviteUser(final String user){
         ArrayList<String> userIds = new ArrayList<>();
         userIds.add(user);
         channel.inviteWithUserIds(userIds, new GroupChannel.GroupChannelInviteHandler() {
@@ -372,6 +386,8 @@ public class ChatActivity extends YouTubeBaseActivity implements YouTubePlayer.O
                 }
 
                 AsixUtils.showToast(getApplicationContext(), "User Invite Successful");
+                AsixUtils.shareText(mAct, "Room ID: " + MiruUser.getCurrentChannel().getUrl());
+
             }
         });
     }
@@ -395,8 +411,8 @@ public class ChatActivity extends YouTubeBaseActivity implements YouTubePlayer.O
     public void onInitializationSuccess(YouTubePlayer.Provider provider, YouTubePlayer player, boolean wasRestored) {
         this.player = player;
         if(MiruUser.isHost()){
-            player.cueVideo(MiruUser.getYoutubeID());
-            player.play();
+            this.player.cueVideo(MiruUser.getYoutubeID());
+            this.player.play();
             setupHost();
         }
     }

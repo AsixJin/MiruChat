@@ -10,7 +10,7 @@
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@color/colorPrimary">
+        android:background="@color/mainRed">
         <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
@@ -29,7 +29,9 @@
     <com.google.android.youtube.player.YouTubePlayerView
         android:id="@+id/youtube_fragment"
         android:layout_width="match_parent"
+        android:minWidth="200dp"
         android:layout_height="match_parent"
+        android:minHeight="110dp"
         android:layout_weight="1"/>
 
     <android.support.v7.widget.RecyclerView

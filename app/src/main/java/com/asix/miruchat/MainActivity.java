@@ -6,11 +6,13 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.util.AsyncListUtil;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.CheckBox;
+import android.widget.EditText;
 
 import com.sendbird.android.GroupChannel;
 import com.sendbird.android.SendBird;
@@ -19,18 +21,25 @@ import com.sendbird.android.User;
 
 import java.util.ArrayList;
 
+import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 
 public class MainActivity extends AppCompatActivity {
 
+    //region Variables
     private final String TAG = "MAIN";
     private SharedPreferences _prefs;
+
+    @BindView(R.id.edit_room) EditText editRoom;
+    @BindView(R.id.edit_youid) EditText editID;
+    //endregion
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.layout_new_main);
+        ButterKnife.bind(this);
 
         Toolbar toolbar = (Toolbar)findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -47,11 +56,11 @@ public class MainActivity extends AppCompatActivity {
 
     //region ButterKnife On Clicks
     @OnClick(R.id.button_host) public void buttonHostClick(){
-        showAskRoomDialog(true);
+        hostRoom();
     }
 
     @OnClick(R.id.button_join) public void buttonJoinClick(){
-        showAskRoomDialog(false);
+        connectToRoom();
     }
     //endregion
 
@@ -109,6 +118,77 @@ public class MainActivity extends AppCompatActivity {
     //endregion
 
     //region Room Methods
+    private void hostRoom(){
+        String roomname = AsixUtils.getEditText_Text(editRoom, "");
+        final String youtubeID = AsixUtils.getEditText_Text(editID, "");
+
+        if(AsixUtils.doesStringExist(roomname) && AsixUtils.doesStringExist(youtubeID)){
+            ArrayList<User> userList = new ArrayList<>();
+            userList.add(MiruUser.getUser());
+            GroupChannel.createChannel(userList, true, roomname, null, null, null, new GroupChannel.GroupChannelCreateHandler() {
+                @Override
+                public void onResult(GroupChannel groupChannel, SendBirdException e) {
+                    if (e != null) {
+                        // Error.
+                        AsixUtils.showToast(getApplicationContext(), "Error making channel. Please try again");
+                        e.printStackTrace();
+                    }else{
+                        MiruUser.joinRoom(groupChannel, true, youtubeID);
+                        AsixUtils.showToast(getApplicationContext(), "Welcome to the " + groupChannel.getName() + " channel");
+                        Log.i(TAG, groupChannel.getUrl());
+                        startActivity(new Intent(getApplicationContext(), ChatActivity.class));
+                    }
+                }
+            });
+        }else{
+            AsixUtils.makeToast(getApplicationContext(), "Please enter Youtube video ID").show();
+        }
+    }
+
+    private void connectToRoom(){
+        final String roomlink = AsixUtils.getEditText_Text(editRoom, "");
+
+        if(AsixUtils.doesStringExist(roomlink)){
+            GroupChannel.getChannel(roomlink, new GroupChannel.GroupChannelGetHandler() {
+                @Override
+                public void onResult(GroupChannel groupChannel, SendBirdException e) {
+                    if (e != null) {
+                        // Error!
+                        e.printStackTrace();
+                        return;
+                    }
+
+                    MiruUser.joinRoom(groupChannel, false, null);
+                    AsixUtils.showToast(getApplicationContext(), "Welcome to the " + groupChannel.getName() + " channel");
+                    startActivity(new Intent(getApplicationContext(), ChatActivity.class));
+                }
+            });
+        }else{
+            AsixUtils.makeToast(getApplicationContext(), "Please enter room link").show();
+        }
+    }
+    //endregion
+
+    //region Deprecated
+    @Deprecated
+    private void joinRoom(String roomlink){
+        GroupChannel.getChannel(roomlink, new GroupChannel.GroupChannelGetHandler() {
+            @Override
+            public void onResult(GroupChannel groupChannel, SendBirdException e) {
+                if (e != null) {
+                    // Error!
+                    e.printStackTrace();
+                    return;
+                }
+
+                MiruUser.joinRoom(groupChannel, false, null);
+                AsixUtils.showToast(getApplicationContext(), "Welcome to the " + groupChannel.getName() + " channel");
+                startActivity(new Intent(getApplicationContext(), ChatActivity.class));
+            }
+        });
+    }
+
+    @Deprecated
     private void showAskRoomDialog(final boolean isHost){
         final Dialog loginDialog = AsixUtils.createDialog(this, R.layout.dialog_login);
         AsixUtils.setVisibility(loginDialog.findViewById(R.id.edit_youtube), isHost);
@@ -135,6 +215,7 @@ public class MainActivity extends AppCompatActivity {
         loginDialog.show();
     }
 
+    @Deprecated
     public void makeRoom(final String roomname, final String youtubeID, final boolean host){
         ArrayList<User> userList = new ArrayList<>();
         userList.add(MiruUser.getUser());
@@ -155,6 +236,7 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    @Deprecated
     public void joinRoom(final String roomlink, final boolean host){
         GroupChannel.getChannel(roomlink, new GroupChannel.GroupChannelGetHandler() {
             @Override
@@ -172,5 +254,5 @@ public class MainActivity extends AppCompatActivity {
         });
     }
     //endregion
-
 }
+

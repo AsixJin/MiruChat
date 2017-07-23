@@ -7,9 +7,4 @@
         android:icon="@android:drawable/ic_menu_add"
         compat:showAsAction="ifRoom" />
 
-    <item android:id="@+id/send"
-        android:title="@string/menuitem_send"
-        android:icon="@android:drawable/ic_menu_share"
-        compat:showAsAction="ifRoom" />
-
 </menu>
